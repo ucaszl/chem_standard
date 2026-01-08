@@ -13,3 +13,7 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+*.pyc
+.pytest_cache/
+examples/demo_reaction_payload.json
+examples/data/
