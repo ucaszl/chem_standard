@@ -15,6 +15,8 @@ class MoleculeInput(BaseModel):
 
 
 class ReactionInput(BaseModel):
-    reactants: List[MoleculeInput]
-    products: List[MoleculeInput]
-    metadata: Optional[Dict] = None
+    reactants: list[MoleculeInput]
+    products: list[MoleculeInput]
+    conditions: dict | None = None
+    metadata: dict | None = None
+
