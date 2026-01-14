@@ -8,6 +8,7 @@ from collections import Counter
 from .molecule import Molecule
 from collections import defaultdict
 from typing import List, Dict
+from src.signature.reaction_signature import ReactionSignature
 
 class Reaction:
     """
@@ -35,38 +36,31 @@ class Reaction:
         # 自动记录创建时间（UTC ISO 格式）
         self.created_at = datetime.utcnow().isoformat() + "Z"
 
+    def signature(self) -> ReactionSignature:
+        """
+        Return the canonical ReactionSignature for this reaction.
 
+        Current definition (P3-2 minimal):
+        - Each molecule is represented by its empirical formula string
+        - Reactants and products are order-invariant
+        """
+        reactant_forms = tuple(
+            m.formula for m in self.reactants
+        )
+        product_forms = tuple(
+            m.formula for m in self.products
+        )
+
+        return ReactionSignature(
+            reactants=reactant_forms,
+            products=product_forms,
+        )
 
     def canonical_key(self) -> str:
         """
-        Return a canonical, order-invariant key for reaction equivalence.
-
-        Definition principles:
-        1. Ignore ordering of reactants/products
-        2. Count stoichiometry
-        3. Use chemical identity only (no metadata, no kinetics)
-        4. Direction-sensitive (A->B != B->A)
+        Backward-compatible canonical key accessor.
         """
-
-        def normalize_side(species):
-            """
-            Convert a list of Molecule into a sorted, counted tuple:
-            e.g. [H2, O2, O2] -> (("H2", 1), ("O2", 2))
-            """
-            names = [m.formula for m in species]
-            counter = Counter(names)
-            return tuple(sorted(counter.items()))
-
-        reactant_sig = normalize_side(self.reactants)
-        product_sig = normalize_side(self.products)
-
-        canonical_repr = {
-            "reactants": reactant_sig,
-            "products": product_sig,
-        }
-
-        raw = repr(canonical_repr).encode("utf-8")
-        return hashlib.sha256(raw).hexdigest()
+        return self.identity().canonical_key
 
     @staticmethod
     def deduplicate(reactions: List["Reaction"]) -> Dict[str, List["Reaction"]]:
@@ -165,3 +159,17 @@ class Reaction:
 
     def __repr__(self):
         return f"Reaction(reactants={len(self.reactants)}, products={len(self.products)}, created_at={self.created_at})"
+
+    def identity(self):
+        """
+        Return the ReactionIdentity for this reaction.
+        """
+        return self.signature().identity()
+
+    def __eq__(self, other):
+        if not isinstance(other, Reaction):
+            return NotImplemented
+        return self.identity() == other.identity()
+
+    def __hash__(self):
+        return hash(self.identity())
