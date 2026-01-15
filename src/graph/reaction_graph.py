@@ -1,7 +1,8 @@
 from collections import defaultdict
-from typing import Iterable, Set
+from typing import Iterable, Set, List
 
 from src.reaction import Reaction
+from src.dataset.reaction_dataset import ReactionDataset
 
 
 class ReactionGraph:
@@ -15,6 +16,8 @@ class ReactionGraph:
     def __init__(self):
         self._reactions: Set[Reaction] = set()
         self._by_species = defaultdict(set)
+
+    # ---------- construction ----------
 
     def add_reaction(self, r: Reaction):
         """
@@ -36,11 +39,38 @@ class ReactionGraph:
         for r in reactions:
             self.add_reaction(r)
 
-    def reactions_by_species(self, formula: str):
+    @classmethod
+    def from_dataset(cls, ds: ReactionDataset) -> "ReactionGraph":
+        """
+        Build a ReactionGraph from a ReactionDataset.
+        """
+        g = cls()
+        g.add_reactions(ds.reactions())
+        return g
+
+    # ---------- public query API ----------
+
+    def reactions(self) -> List[Reaction]:
+        """
+        Return all reactions in the graph.
+
+        This is the ONLY supported way to iterate over reactions.
+        """
+        return list(self._reactions)
+
+    def reactions_by_species(self, formula: str) -> List[Reaction]:
         """
         Return all reactions involving a given species formula.
         """
         return list(self._by_species.get(formula, []))
+
+    def species(self):
+        """
+        Return all species formulas appearing in the graph.
+        """
+        return set(self._by_species.keys())
+
+    # ---------- diagnostics ----------
 
     def stats(self):
         """
