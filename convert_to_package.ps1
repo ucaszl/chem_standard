@@ -95,7 +95,6 @@ if (Test-Path $setupCfgPath) {
 
 Write-Log "Writing setup.cfg without BOM"
 # Use .NET API to write UTF-8 without BOM reliably
-Add-Type -AssemblyName System.Text
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($setupCfgPath, $setupCfgContent, $utf8NoBom)
 Write-Log "setup.cfg written (UTF-8 no BOM)."
