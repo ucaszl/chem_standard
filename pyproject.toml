@@ -1,0 +1,13 @@
+[project]
+name = "chem_standard"
+version = "0.1.0"
+description = "chem_standard — atomic/reaction standardization and tools"
+authors = [
+  { name="Zhang Da", email="zhangda@users.noreply.github.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"

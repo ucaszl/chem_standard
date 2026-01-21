@@ -8,7 +8,6 @@ class AtomInput(BaseModel):
     y: float
     z: float
 
-
 class MoleculeInput(BaseModel):
     atoms: List[AtomInput]
     metadata: Optional[Dict] = None
