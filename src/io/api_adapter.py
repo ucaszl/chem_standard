@@ -1,28 +1,28 @@
-# src/io/api_adapter.py
+﻿# src/io/api_adapter.py
 from typing import Dict, List
 from pathlib import Path
 import json
 import hashlib
 from datetime import datetime
-from src.atom import Atom
-from src.molecule import Molecule
-from src.reaction import Reaction
-from src.io.api_schema import AtomInput, MoleculeInput, ReactionInput
+from chem_standard.atom import Atom
+from chem_standard.molecule import Molecule
+from chem_standard.reaction import Reaction
+from chem_standard.io.api_schema import AtomInput, MoleculeInput, ReactionInput
 
-# 最小元素表（根据需要扩展）
+# 鏈€灏忓厓绱犺〃锛堟牴鎹渶瑕佹墿灞曪級
 PERIODIC_TABLE: Dict[str, int] = {
     "H": 1, "He": 2, "Li": 3, "Be": 4, "B": 5, "C": 6, "N": 7, "O": 8, "F": 9, "Ne": 10,
-    # 只列举常用项，后续请扩充完整表
+    # 鍙垪涓惧父鐢ㄩ」锛屽悗缁鎵╁厖瀹屾暣琛?
 }
 
-# 数据目录与索引文件（与 API 保持一致）
+# 鏁版嵁鐩綍涓庣储寮曟枃浠讹紙涓?API 淇濇寔涓€鑷达級
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent  # points to project root
 DATA_DIR = PROJECT_ROOT / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 REACTION_LOG = DATA_DIR / "reactions.jsonl"
 INDEX_FILE = DATA_DIR / "reactions_index.txt"
 
-# 加载已有 hash 索引到内存（简单持久化）
+# 鍔犺浇宸叉湁 hash 绱㈠紩鍒板唴瀛橈紙绠€鍗曟寔涔呭寲锛?
 _existing_hashes = set()
 if INDEX_FILE.exists():
     try:
@@ -72,8 +72,8 @@ def reactioninput_to_reaction(ri: ReactionInput) -> Reaction:
 
 def reaction_to_canonical_hash(r: Reaction) -> str:
     """
-    产生一个 canonical json 哈希，用于去重。
-    我们对 reactants/products 做排序（按元素符号及坐标），以减小顺序导致的差异。
+    浜х敓涓€涓?canonical json 鍝堝笇锛岀敤浜庡幓閲嶃€?
+    鎴戜滑瀵?reactants/products 鍋氭帓搴忥紙鎸夊厓绱犵鍙峰強鍧愭爣锛夛紝浠ュ噺灏忛『搴忓鑷寸殑宸紓銆?
     """
     def canonical_mol(mol):
         atoms = sorted([
@@ -104,6 +104,7 @@ def register_hash(hash_str: str):
 
 
 def write_reaction(r: Reaction):
-    # 写入 jsonl（r 为 core.Reaction）
+    # 鍐欏叆 jsonl锛坮 涓?core.Reaction锛?
     with REACTION_LOG.open("a", encoding="utf-8") as f:
         f.write(json.dumps(r.to_dict(), ensure_ascii=False) + "\n")
+

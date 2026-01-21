@@ -1,250 +1,172 @@
-    <#
-convert_to_package.ps1
+<#
+.SYNOPSIS
+  Convert repository to package-friendly layout & fix encoding issues (remove BOM).
+  This script focuses on two fixes:
+    - rewrite setup.cfg without BOM (fix configparser MissingSectionHeaderError)
+    - rewrite src/chem_standard/__init__.py with safe UTF-8 content (no garbled comments)
+  It also attempts `pip install -e .` at the end.
 
-一键把仓库转换为 installable package (src layout -> package name chem_standard),
-统一 import 路径 (from src.* -> from chem_standard.*, import src.* -> import chem_standard.*),
-并执行 pip install -e . 与 pytest 验证，最后在测试通过时提交并 push。
-
-运行示例（在仓库根 D:\chem_standard，确保激活了 chem-standard conda 环境）:
-    # 如果系统策略限制脚本执行：
-    PowerShell -ExecutionPolicy Bypass -File .\convert_to_package.ps1
-
-或者在已允许运行脚本的 PowerShell 中：
-    .\convert_to_package.ps1
+.NOTES
+  Run this script from the repository root (D:\chem_standard).
+  Usage: PowerShell -ExecutionPolicy Bypass -File .\convert_to_package.ps1
 #>
 
-# ------------------------
-# 配置（如需改动在此修改）
-# ------------------------
-$BranchName = "infra/convert-to-package"
-$BackupCommitMsg = "chore: backup before package conversion"
-$FinalCommitMsg = "chore(pkg): make project installable as chem_standard (src layout), unify imports and tests"
-$PackageName = "chem_standard"
-$SetupCfgContent = @"
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+function Write-Log {
+    param($msg)
+    $t = (Get-Date).ToString("u")
+    Write-Output "[$t] $msg"
+}
+
+# 1) 基本检查：确保在仓库根
+$repoRoot = (Get-Location).Path
+Write-Log "Starting package conversion script. Repository root: $repoRoot"
+
+# Ensure we have a .git folder
+if (-not (Test-Path (Join-Path $repoRoot ".git"))) {
+    Write-Log "ERROR: Current directory does not appear to be a git repository (no .git). Exiting."
+    exit 1
+}
+
+# 2) 创建/切换到专用分支并保存未提交改动（安全）
+$branch = "infra/convert-to-package"
+$currentBranch = (& git rev-parse --abbrev-ref HEAD).Trim()
+Write-Log "Current git branch: $currentBranch"
+
+# Create branch if not exists
+$branches = & git branch --list $branch
+if ($branches -eq "") {
+    Write-Log "Creating branch: $branch"
+    & git checkout -b $branch
+} else {
+    Write-Log "Switching to existing branch: $branch"
+    & git checkout $branch
+}
+
+# If there are uncommitted changes, make a backup commit
+$porcelain = (& git status --porcelain).Trim()
+if ($porcelain) {
+    Write-Log "Uncommitted changes detected. Creating temporary backup commit."
+    & git add -A
+    & git commit -m "chore: backup before package conversion" | Out-Null
+} else {
+    Write-Log "No uncommitted changes."
+}
+
+# 3) Ensure directories exist
+$pkgInitPath = Join-Path $repoRoot "src\chem_standard\__init__.py"
+if (-not (Test-Path (Split-Path $pkgInitPath -Parent))) {
+    Write-Log "Creating package directory src\chem_standard"
+    New-Item -ItemType Directory -Path (Split-Path $pkgInitPath -Parent) -Force | Out-Null
+}
+
+# 4) Recreate setup.cfg WITHOUT BOM using .NET UTF8Encoding(false)
+$setupCfgPath = Join-Path $repoRoot "setup.cfg"
+
+# Recommended setup.cfg content (adjust authors/email if you want)
+$setupCfgContent = @"
 [metadata]
 name = chem_standard
 version = 0.1.0
 description = chem_standard — atomic/reaction standardization and tools
-author = Zhang Da
-author_email = zhangda@users.noreply.github.com
 long_description = file: README.md
 long_description_content_type = text/markdown
+author = Zhang Da
+author_email = zhangda@users.noreply.github.com
+license = MIT
 
 [options]
+packages = find:
 package_dir =
     = src
-packages = find:
 python_requires = >=3.10
 
 [options.packages.find]
 where = src
 "@
 
-$InitTemplate = @"
-# src/chem_standard/__init__.py
-\"\"\"Top-level package for chem_standard.\"\"\"
+Write-Log "Backing up existing setup.cfg if present"
+if (Test-Path $setupCfgPath) {
+    Copy-Item -Path $setupCfgPath -Destination ($setupCfgPath + ".bak") -Force
+    Write-Log "Backed up setup.cfg -> setup.cfg.bak"
+}
 
-# 常用导出，按需修改
+Write-Log "Writing setup.cfg without BOM"
+# Use .NET API to write UTF-8 without BOM reliably
+Add-Type -AssemblyName System.Text
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText($setupCfgPath, $setupCfgContent, $utf8NoBom)
+Write-Log "setup.cfg written (UTF-8 no BOM)."
+
+# 5) Fix src/chem_standard/__init__.py content (no BOM, safe comments)
+$initPath = $pkgInitPath
+$initContent = @'
+"""Top-level package for chem_standard.
+
+Export the core public types for convenience:
+  from chem_standard import Atom, Molecule, Reaction
+Keep comments plain ASCII/UTF-8 to avoid encoding issues.
+"""
+
+# Public exports
 from .atom import Atom
 from .molecule import Molecule
 from .reaction import Reaction
 
-# 可选：暴露子包（按需取消注释）
+# Optional subpackages (uncomment if you want to expose these at package root)
 # from . import io, graph, dataset, rules, path, ml, signature, identity
-"@
+'@
 
-# 排除路径片段（不会在这些目录下做替换）
-$Excludes = @(
-    ".git",
-    ".venv",
-    "venv",
-    "env",
-    "core__DEPRECATED",
-    "build",
-    "dist",
-    "examples\\data",
-    "__pycache__"
-)
-
-# ------------------------
-# 工具函数
-# ------------------------
-function Write-Log($msg) {
-    $ts = (Get-Date).ToString("u")
-    Write-Host "[$ts] $msg"
+Write-Log "Backing up existing __init__.py if present"
+if (Test-Path $initPath) {
+    Copy-Item -Path $initPath -Destination ($initPath + ".bak") -Force
+    Write-Log "Backed up __init__.py -> __init__.py.bak"
 }
 
-function Is-GitRepo {
-    try {
-        git rev-parse --is-inside-work-tree > $null 2>&1
-        return $LASTEXITCODE -eq 0
-    } catch {
-        return $false
+Write-Log "Writing src/chem_standard/__init__.py (UTF-8 no BOM)"
+[System.IO.File]::WriteAllText($initPath, $initContent, $utf8NoBom)
+Write-Log "__init__.py written."
+
+# 6) Search & fix any lingering 'from src.' import patterns inside src/ files (best-effort)
+# This replaces "from src." with "from chem_standard." only in .py files inside src\ (skip tests and examples).
+Write-Log "Scanning src/ for 'from src.' and 'import src.' occurrences and replacing with package imports"
+Get-ChildItem -Path (Join-Path $repoRoot "src") -Recurse -Include *.py |
+    Where-Object { $_.FullName -notmatch "\\tests\\" -and $_.FullName -notmatch "\\examples\\" } |
+    ForEach-Object {
+        $text = Get-Content -Raw -LiteralPath $_.FullName -Encoding UTF8
+        $new = $text -replace 'from\s+src\.', 'from chem_standard.' -replace 'import\s+src\.', 'import chem_standard.'
+        if ($new -ne $text) {
+            Copy-Item -Path $_.FullName -Destination ($_.FullName + ".bak") -Force
+            [System.IO.File]::WriteAllText($_.FullName, $new, $utf8NoBom)
+            Write-Log "Rewrote import references in: $($_.FullName)"
+        }
     }
-}
 
-function Run-Or-Exit($cmd, $errMsg) {
-    Write-Log "Running: $cmd"
-    iex $cmd
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host ""
-        Write-Host "ERROR: $errMsg" -ForegroundColor Red
-        throw "Command failed: $cmd"
-    }
-}
-
-# ------------------------
-# 开始执行
-# ------------------------
-Write-Log "Starting package conversion script. Make sure you're in the repository root."
-
-if (-not (Is-GitRepo)) {
-    Write-Host "This directory is not a git repository. Please run from repository root." -ForegroundColor Red
-    exit 1
-}
-
-# 1) 切换/创建分支
-Write-Log "Create/switch branch: $BranchName"
-# If branch exists, checkout; otherwise create from current HEAD
-$branchExists = git branch --list $BranchName | ForEach-Object { $_.Trim() }
-if ($branchExists) {
-    git checkout $BranchName
-} else {
-    git checkout -b $BranchName
-}
-if ($LASTEXITCODE -ne 0) { throw "Failed to create/switch branch $BranchName" }
-
-# 2) 如果有未提交更改，先做一个备份提交（便于回滚）
-$porcelain = git status --porcelain
-if ($porcelain) {
-    Write-Log "Uncommitted changes detected. Creating backup commit."
-    git add -A
-    git commit -m "$BackupCommitMsg"
-    if ($LASTEXITCODE -ne 0) { throw "Backup commit failed." }
-} else {
-    Write-Log "Working tree clean. No backup commit necessary."
-}
-
-# 3) 创建 setup.cfg（如果不存在）
-if (-not (Test-Path "setup.cfg")) {
-    Write-Log "Creating setup.cfg"
-    Set-Content -Path "setup.cfg" -Value $SetupCfgContent -Encoding UTF8
-} else {
-    Write-Log "setup.cfg already exists; leaving as-is (backup not overwritten)."
-}
-
-# 4) Ensure src/chem_standard/__init__.py exists
-$pkgInitPath = Join-Path -Path "src" -ChildPath "$PackageName\__init__.py"
-if (-not (Test-Path $pkgInitPath)) {
-    Write-Log "Creating $pkgInitPath with recommended exports."
-    # ensure directory exists
-    $dir = Split-Path $pkgInitPath -Parent
-    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-    Set-Content -Path $pkgInitPath -Value $InitTemplate -Encoding UTF8
-} else {
-    Write-Log "$pkgInitPath exists; not overwriting."
-}
-
-# 5) 批量替换 Python 文件中的导入路径
-Write-Log "Scanning *.py files and performing safe replacements..."
-
-$modified = @()
-$pyFiles = Get-ChildItem -Recurse -Filter *.py | Where-Object {
-    # skip files within excluded paths
-    $full = $_.FullName
-    foreach ($ex in $Excludes) {
-        if ($full -like "*$ex*") { return $false }
-    }
-    return $true
-}
-
-foreach ($f in $pyFiles) {
-    $path = $f.FullName
-    try {
-        $text = Get-Content -Raw -LiteralPath $path -ErrorAction Stop
-    } catch {
-        Write-Log "Skipping unreadable file: $path"
-        continue
-    }
-    $new = $text -replace 'from\s+src\.', "from $PackageName." -replace '\bimport\s+src\.', "import $PackageName."
-    if ($new -ne $text) {
-        # write back UTF8 (no BOM)
-        Set-Content -LiteralPath $path -Value $new -Encoding UTF8
-        $modified += $path
-        Write-Host "Rewrote: $path"
-    }
-}
-
-if ($modified.Count -eq 0) {
-    Write-Log "No files needed replacement (no 'from src.' or 'import src.' found outside excluded directories)."
-} else {
-    Write-Log "Total files modified: $($modified.Count)"
-}
-
-# 6) Show any remaining occurrences of 'from src.' or 'import src.' for manual review
-Write-Log "Searching for any remaining 'from src.' or 'import src.' occurrences..."
-$leftover = Get-ChildItem -Recurse -Filter *.py | Select-String -Pattern "from\s+src\.|import\s+src\." -List | ForEach-Object { $_.Path } | Sort-Object -Unique
-# Filter excluded paths
-$leftover = $leftover | Where-Object {
-    $p = $_
-    $skip = $false
-    foreach ($ex in $Excludes) {
-        if ($p -like "*$ex*") { $skip = $true; break }
-    }
-    -not $skip
-}
-if ($leftover) {
-    Write-Host "WARNING: Found remaining occurrences of 'src' imports in files (please inspect manually):" -ForegroundColor Yellow
-    $leftover | ForEach-Object { Write-Host "  $_" }
-} else {
-    Write-Log "No remaining 'src' import occurrences found (outside excluded paths)."
-}
-
-# 7) Attempt editable install
-Write-Log "Installing package in editable mode (pip install -e .). This may take time..."
-# Use pip from current environment
+# 7) Try installing editable package
+Write-Log "Attempting 'pip install -e .' (editable install). This may take a while."
 try {
-    python -m pip install -e . --no-input
-    if ($LASTEXITCODE -ne 0) { throw "pip install returned non-zero exit code" }
+    & python -m pip install -e . --no-input
+    Write-Log "pip install -e . completed (check output above for details)."
 } catch {
-    Write-Host "ERROR: pip install -e . failed. See pip output above." -ForegroundColor Red
-    Write-Host "You can inspect the modified files and revert if needed via git. Exiting."
-    exit 2
+    Write-Log "WARNING: pip install -e . failed. See error output above. You can inspect setup.cfg and pyproject.toml manually."
+    Write-Log "Exception: $($_.Exception.Message)"
 }
 
-# 8) Run pytest
-Write-Log "Running pytest -q ..."
-# run pytest and capture exit code
-pytest -q
-$pytest_exit = $LASTEXITCODE
-
-if ($pytest_exit -eq 0) {
-    Write-Log "pytest passed. Proceeding to final commit and push."
-
-    # 9) Final commit and push
-    git add -A
-    git commit -m "$FinalCommitMsg"
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: git commit failed. Please inspect the repo state." -ForegroundColor Red
-        exit 3
-    }
-
-    Write-Log "Pushing branch to origin (git push -u origin HEAD)..."
-    git push -u origin HEAD
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "WARNING: git push failed. Local commit exists; push manually." -ForegroundColor Yellow
-        exit 0
-    }
-
-    Write-Host "SUCCESS: conversion completed, tests passed, changes pushed." -ForegroundColor Green
-    exit 0
-} else {
-    Write-Host "pytest failed (exit code $pytest_exit). Not committing final changes." -ForegroundColor Red
-    Write-Host "You can inspect files in the modified list above, run pytest locally to diagnose, fix issues, then commit manually." -ForegroundColor Yellow
-    # show modified files for convenience
-    if ($modified.Count -gt 0) {
-        Write-Host "`nModified files (not committed):"
-        $modified | ForEach-Object { Write-Host "  $_" }
-    }
-    exit 4
+# 8) Run tests (optional): small smoke test using pytest
+Write-Log "Running pytest -q (smoke test)."
+try {
+    & python -m pytest -q
+    Write-Log "pytest completed (see above)."
+} catch {
+    Write-Log "pytest returned a non-zero exit code (see output above). This may be expected if tests depend on other state."
 }
+
+# 9) Post-run notes
+Write-Log "Script finished. Recommended next steps:"
+Write-Log "  1) Inspect setup.cfg and src/chem_standard/__init__.py.bak if anything unexpected."
+Write-Log "  2) If editable install succeeded and tests pass, commit the deterministic fixes:"
+Write-Log "       git add setup.cfg src/chem_standard/__init__.py"
+Write-Log "       git commit -m 'chore(pkg): remove BOM and fix package init for packaging' && git push"
+Write-Log "  3) If you prefer, revert automatic import replacements by restoring .bak files in src/ if any change is undesirable."

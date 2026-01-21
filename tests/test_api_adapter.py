@@ -1,8 +1,8 @@
-# tests/test_api_adapter.py
+﻿# tests/test_api_adapter.py
 import json
-from src.io.api_schema import AtomInput, MoleculeInput, ReactionInput
-from src.io.api_adapter import reactioninput_to_reaction, reaction_to_canonical_hash, is_duplicate, register_hash, INDEX_FILE, REACTION_LOG, DATA_DIR
-from src.reaction import Reaction
+from chem_standard.io.api_schema import AtomInput, MoleculeInput, ReactionInput
+from chem_standard.io.api_adapter import reactioninput_to_reaction, reaction_to_canonical_hash, is_duplicate, register_hash, INDEX_FILE, REACTION_LOG, DATA_DIR
+from chem_standard.reaction import Reaction
 
 def test_reaction_adapter_and_hash(tmp_path, monkeypatch):
     # prepare a small ReactionInput
@@ -23,7 +23,7 @@ def test_duplicate_index(tmp_path, monkeypatch):
     idx = tmp_path / "index.txt"
     monkeypatch.setenv("PROJECT_ROOT", str(tmp_path))
     # manually test register_hash / is_duplicate
-    from src.io.api_adapter import _existing_hashes, register_hash, is_duplicate
+    from chem_standard.io.api_adapter import _existing_hashes, register_hash, is_duplicate
     # pick a dummy hash
     h = "a" * 64
     if h in _existing_hashes:
@@ -31,3 +31,4 @@ def test_duplicate_index(tmp_path, monkeypatch):
     assert not is_duplicate(h)
     register_hash(h)
     assert is_duplicate(h)
+

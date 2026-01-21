@@ -1,4 +1,4 @@
-# src/reaction.py
+﻿# src/reaction.py
 import os
 import json
 from datetime import datetime
@@ -8,12 +8,12 @@ from collections import Counter
 from .molecule import Molecule
 from collections import defaultdict
 from typing import List, Dict
-from src.signature.reaction_signature import ReactionSignature
+from chem_standard.signature.reaction_signature import ReactionSignature
 
 class Reaction:
     """
-    语义级别的 Reaction 抽象（非物理求解器）。
-    只负责表示反应（反应物 / 产物 / 条件 / 元数据）及提供数据落盘钩子。
+    璇箟绾у埆鐨?Reaction 鎶借薄锛堥潪鐗╃悊姹傝В鍣級銆?
+    鍙礋璐ｈ〃绀哄弽搴旓紙鍙嶅簲鐗?/ 浜х墿 / 鏉′欢 / 鍏冩暟鎹級鍙婃彁渚涙暟鎹惤鐩橀挬瀛愩€?
     """
 
     def __init__(
@@ -23,7 +23,7 @@ class Reaction:
         conditions: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ):
-        # 只做最小校验：reactants / products 必须为 Molecule 列表
+        # 鍙仛鏈€灏忔牎楠岋細reactants / products 蹇呴』涓?Molecule 鍒楄〃
         if not isinstance(reactants, list) or not all(isinstance(m, Molecule) for m in reactants):
             raise ValueError("reactants must be a list of Molecule instances")
         if not isinstance(products, list) or not all(isinstance(m, Molecule) for m in products):
@@ -33,7 +33,7 @@ class Reaction:
         self.products = products
         self.conditions = conditions or {}
         self.metadata = metadata or {}
-        # 自动记录创建时间（UTC ISO 格式）
+        # 鑷姩璁板綍鍒涘缓鏃堕棿锛圲TC ISO 鏍煎紡锛?
         self.created_at = datetime.utcnow().isoformat() + "Z"
 
     def signature(self) -> ReactionSignature:
@@ -82,8 +82,8 @@ class Reaction:
 
     @classmethod
     def from_dict(cls, d: dict) -> "Reaction":
-        from src.atom import Atom
-        from src.molecule import Molecule
+        from chem_standard.atom import Atom
+        from chem_standard.molecule import Molecule
 
         def atom_from_dict(ad):
             return Atom(
@@ -111,8 +111,8 @@ class Reaction:
 
     def as_dict(self) -> Dict[str, Any]:
         """
-        返回可序列化的字典表示，适合写入日志 / 数据库 / API。
-        使用 Molecule.to_dict() 以保留原子级信息与元数据。
+        杩斿洖鍙簭鍒楀寲鐨勫瓧鍏歌〃绀猴紝閫傚悎鍐欏叆鏃ュ織 / 鏁版嵁搴?/ API銆?
+        浣跨敤 Molecule.to_dict() 浠ヤ繚鐣欏師瀛愮骇淇℃伅涓庡厓鏁版嵁銆?
         """
         return {
             "reactants": [m.to_dict() for m in self.reactants],
@@ -124,22 +124,22 @@ class Reaction:
 
     def log(self, sink: Optional[str] = None) -> str:
         """
-        将该 Reaction 的 as_dict() 以一行 JSON（JSONL）追加写入 sink（文件路径）。
-        默认 sink： ./data/reactions.jsonl （项目相对路径）
-        返回写入的文件路径。
+        灏嗚 Reaction 鐨?as_dict() 浠ヤ竴琛?JSON锛圝SONL锛夎拷鍔犲啓鍏?sink锛堟枃浠惰矾寰勶級銆?
+        榛樿 sink锛?./data/reactions.jsonl 锛堥」鐩浉瀵硅矾寰勶級
+        杩斿洖鍐欏叆鐨勬枃浠惰矾寰勩€?
 
-        注意：data/ 目录默认在 .gitignore 中被忽略，用于存放原始数据。
+        娉ㄦ剰锛歞ata/ 鐩綍榛樿鍦?.gitignore 涓蹇界暐锛岀敤浜庡瓨鏀惧師濮嬫暟鎹€?
         """
         if sink is None:
             sink = os.path.join(os.getcwd(), "data", "reactions.jsonl")
 
-        # 确保目录存在
+        # 纭繚鐩綍瀛樺湪
         dirpath = os.path.dirname(sink)
         if not os.path.exists(dirpath):
             os.makedirs(dirpath, exist_ok=True)
 
         record = self.as_dict()
-        # 以 UTF-8 写入并保持非 ASCII 可读
+        # 浠?UTF-8 鍐欏叆骞朵繚鎸侀潪 ASCII 鍙
         with open(sink, "a", encoding="utf-8") as f:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
@@ -147,7 +147,7 @@ class Reaction:
 
     def summary(self) -> Dict[str, Any]:
         """
-        返回简要元信息（数量级别的 summary），便于快速查看或索引。
+        杩斿洖绠€瑕佸厓淇℃伅锛堟暟閲忕骇鍒殑 summary锛夛紝渚夸簬蹇€熸煡鐪嬫垨绱㈠紩銆?
         """
         return {
             "n_reactants": len(self.reactants),
@@ -173,3 +173,4 @@ class Reaction:
 
     def __hash__(self):
         return hash(self.identity())
+

@@ -1,12 +1,12 @@
-# src/io/verify_rule_filtered_paths.py
+﻿# src/io/verify_rule_filtered_paths.py
 
 from pathlib import Path
 
-from src.dataset.reaction_dataset import ReactionDataset
-from src.graph.reaction_graph import ReactionGraph
-from src.graph.species_graph import SpeciesGraph
-from src.path.reaction_path_finder import ReactionPathFinder
-from src.rules.reaction_rule import ReactionRule
+from chem_standard.dataset.reaction_dataset import ReactionDataset
+from chem_standard.graph.reaction_graph import ReactionGraph
+from chem_standard.graph.species_graph import SpeciesGraph
+from chem_standard.path.reaction_path_finder import ReactionPathFinder
+from chem_standard.rules.reaction_rule import ReactionRule
 
 
 class AllowAllRule(ReactionRule):
@@ -50,8 +50,9 @@ def main():
     assert len(paths_plain) == len(paths_rule), \
         "Rule-injected pathfinder should match plain pathfinder for AllowAllRule"
 
-    print("✔ Rule filtering is structurally correct")
+    print("鉁?Rule filtering is structurally correct")
 
 
 if __name__ == "__main__":
     main()
+

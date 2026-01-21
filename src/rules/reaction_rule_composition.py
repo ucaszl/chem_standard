@@ -1,4 +1,4 @@
-# src/rules/reaction_rule_composition.py
+﻿# src/rules/reaction_rule_composition.py
 """
 Minimal CompositeRule + DepthLimitRule for P4-3 (safe, minimal).
 Designed to work with existing ReactionPathFinder which expects rules
@@ -6,14 +6,14 @@ implementing `allow(path, candidate_reaction, graph)` and optional `should_prune
 """
 
 from typing import Sequence, Iterable, Optional
-from src.rules.path_rule import PathRule
+from chem_standard.rules.path_rule import PathRule
 from typing import List, Any
 
-# 尝试导入仓库内的 ReactionRule（若存在）
+# 灏濊瘯瀵煎叆浠撳簱鍐呯殑 ReactionRule锛堣嫢瀛樺湪锛?
 try:
-    from src.rules.reaction_rule import ReactionRule  # type: ignore
+    from chem_standard.rules.reaction_rule import ReactionRule  # type: ignore
 except Exception:
-    # 简单回退基类（仅约定接口）
+    # 绠€鍗曞洖閫€鍩虹被锛堜粎绾﹀畾鎺ュ彛锛?
     class ReactionRule:
         def allow(self, path, candidate_reaction, graph) -> bool:
             raise NotImplementedError
@@ -131,4 +131,5 @@ class DepthLimitRule(PathRule):
         # number of reactions = (len(path) - 1) // 2
         steps = (len(path) - 1) // 2
         return steps <= self.max_steps
+
 

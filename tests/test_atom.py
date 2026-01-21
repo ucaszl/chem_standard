@@ -1,6 +1,6 @@
-# tests/test_atom.py
+﻿# tests/test_atom.py
 import numpy as np
-from src.atom import Atom
+from chem_standard.atom import Atom
 
 
 def test_atom_basic():
@@ -14,3 +14,4 @@ def test_atom_basic():
     a2 = Atom.from_dict(d)
     assert a2.atomic_number == a.atomic_number
     assert np.allclose(a2.position, a.position)
+

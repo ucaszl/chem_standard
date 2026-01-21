@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 from typing import Tuple
-from src.identity.reaction_identity import ReactionIdentity
+from chem_standard.identity.reaction_identity import ReactionIdentity
 
 @dataclass(frozen=True)
 class ReactionSignature:

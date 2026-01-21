@@ -1,11 +1,11 @@
-# tests/test_reaction.py
+﻿# tests/test_reaction.py
 import json
 import tempfile
 import os
 
-from src.atom import Atom
-from src.molecule import Molecule
-from src.reaction import Reaction
+from chem_standard.atom import Atom
+from chem_standard.molecule import Molecule
+from chem_standard.reaction import Reaction
 
 
 def build_H2():
@@ -36,7 +36,7 @@ def test_reaction_as_dict_and_log(tmp_path):
     d = rxn.as_dict()
     assert "reactants" in d and isinstance(d["reactants"], list)
     assert "products" in d and isinstance(d["products"], list)
-    # 检查 formula 字段存在于 molecule dict
+    # 妫€鏌?formula 瀛楁瀛樺湪浜?molecule dict
     assert "formula" in d["reactants"][0]
 
     # test log to a temp file
@@ -48,3 +48,4 @@ def test_reaction_as_dict_and_log(tmp_path):
         line = f.readline().strip()
         rec = json.loads(line)
         assert rec["metadata"]["src"] == "test"
+

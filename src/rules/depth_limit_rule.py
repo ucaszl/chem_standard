@@ -1,4 +1,4 @@
-from src.rules.path_rule import PathRule
+﻿from chem_standard.rules.path_rule import PathRule
 
 
 class DepthLimitRule(PathRule):
@@ -9,3 +9,4 @@ class DepthLimitRule(PathRule):
         # number of reactions = (len(path) - 1) // 2
         steps = (len(path) - 1) // 2
         return steps <= self.max_steps
+

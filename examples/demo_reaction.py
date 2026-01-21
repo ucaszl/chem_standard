@@ -1,10 +1,10 @@
-# examples/demo_reaction.py
-from src.atom import Atom
-from src.molecule import Molecule
-from src.reaction import Reaction
+﻿# examples/demo_reaction.py
+from chem_standard.atom import Atom
+from chem_standard.molecule import Molecule
+from chem_standard.reaction import Reaction
 
 def build_H2():
-    # 两个氢原子（示例位置，单位 Å）
+    # 涓や釜姘㈠師瀛愶紙绀轰緥浣嶇疆锛屽崟浣?脜锛?
     h1 = Atom(atomic_number=1, symbol="H", position=(0.0, 0.0, 0.0))
     h2 = Atom(atomic_number=1, symbol="H", position=(0.74, 0.0, 0.0))
     return Molecule(atoms=[h1, h2], metadata={"name": "H2"})
@@ -32,16 +32,17 @@ def main():
         metadata={"source": "demo_reaction", "notes": "stoichiometry simplified"}
     )
 
-    # 打印结构化字典（可直接被 ML 管线消费）
+    # 鎵撳嵃缁撴瀯鍖栧瓧鍏革紙鍙洿鎺ヨ ML 绠＄嚎娑堣垂锛?
     print("Reaction as dict:")
     d = rxn.as_dict()
-    # 为了可读性简短打印：显示 summary + reactants/products counts
+    # 涓轰簡鍙鎬х畝鐭墦鍗帮細鏄剧ず summary + reactants/products counts
     print(rxn.summary())
-    # 写入本地 data/reactions.jsonl，并打印路径
+    # 鍐欏叆鏈湴 data/reactions.jsonl锛屽苟鎵撳嵃璺緞
     out = rxn.log()
     print(f"Logged reaction to: {out}")
-    # 打印第一个 reactant 的原子基本信息作为快速验证
+    # 鎵撳嵃绗竴涓?reactant 鐨勫師瀛愬熀鏈俊鎭綔涓哄揩閫熼獙璇?
     print("Reactant 0 first atom:", d["reactants"][0]["atoms"][0])
 
 if __name__ == "__main__":
     main()
+

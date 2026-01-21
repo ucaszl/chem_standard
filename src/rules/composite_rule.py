@@ -1,6 +1,6 @@
-from typing import List
+﻿from typing import List
 
-from src.rules.path_rule import PathRule
+from chem_standard.rules.path_rule import PathRule
 
 
 class CompositeRule(PathRule):
@@ -23,3 +23,4 @@ class CompositeRule(PathRule):
             return all(rule.is_path_allowed(path) for rule in self.rules)
         else:
             return any(rule.is_path_allowed(path) for rule in self.rules)
+

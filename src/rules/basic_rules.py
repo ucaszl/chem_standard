@@ -1,4 +1,4 @@
-from src.rules.reaction_rule import ReactionRule
+﻿from chem_standard.rules.reaction_rule import ReactionRule
 
 
 class NonEmptyReactionRule(ReactionRule):
@@ -8,3 +8,4 @@ class NonEmptyReactionRule(ReactionRule):
 
     def is_applicable(self, reaction):
         return bool(reaction.reactants) and bool(reaction.products)
+

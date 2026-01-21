@@ -1,5 +1,5 @@
-from pathlib import Path
-from src.io.reaction_index import ReactionIndex
+﻿from pathlib import Path
+from chem_standard.io.reaction_index import ReactionIndex
 
 def main():
     idx = ReactionIndex()
@@ -17,3 +17,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

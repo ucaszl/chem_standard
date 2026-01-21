@@ -1,19 +1,19 @@
-# src/io/verify_species_graph.py
+﻿# src/io/verify_species_graph.py
 from pathlib import Path
-from src.dataset.reaction_dataset import ReactionDataset
-from src.graph.species_graph import SpeciesGraph
+from chem_standard.dataset.reaction_dataset import ReactionDataset
+from chem_standard.graph.species_graph import SpeciesGraph
 
 
 def edge_info(edge):
     """
-    兼容 helper：接受 dict (legacy) 或 SpeciesEdge 对象。
-    返回 (to, reaction_id) 元组，用于打印和统计。
+    鍏煎 helper锛氭帴鍙?dict (legacy) 鎴?SpeciesEdge 瀵硅薄銆?
+    杩斿洖 (to, reaction_id) 鍏冪粍锛岀敤浜庢墦鍗板拰缁熻銆?
     """
     if isinstance(edge, dict):
         to = edge.get("to") or edge.get("product")
         rid = edge.get("reaction") or edge.get("reaction_id")
     else:
-        # SpeciesEdge 对象：使用属性访问
+        # SpeciesEdge 瀵硅薄锛氫娇鐢ㄥ睘鎬ц闂?
         to = getattr(edge, "product", None)
         rid = getattr(edge, "reaction_id", getattr(edge, "reaction", None))
     return to, rid
@@ -25,9 +25,9 @@ def main():
     ds.load_jsonl(base / "data" / "reactions.jsonl")
 
     sg = SpeciesGraph.from_reaction_graph(
-        # 使用 ReactionDataset 构建 ReactionGraph 再投影是更稳妥的流程，
-        # 但我们复用之前的简单路径：按 dataset 的 canonical reactions 构建 species graph
-        # 以保证验证脚本能在你的当前仓库状态下运行。
+        # 浣跨敤 ReactionDataset 鏋勫缓 ReactionGraph 鍐嶆姇褰辨槸鏇寸ǔ濡ョ殑娴佺▼锛?
+        # 浣嗘垜浠鐢ㄤ箣鍓嶇殑绠€鍗曡矾寰勶細鎸?dataset 鐨?canonical reactions 鏋勫缓 species graph
+        # 浠ヤ繚璇侀獙璇佽剼鏈兘鍦ㄤ綘鐨勫綋鍓嶄粨搴撶姸鎬佷笅杩愯銆?
         __import__("src.graph.reaction_graph", fromlist=["ReactionGraph"]).ReactionGraph.from_dataset(
             ds
         )
@@ -38,9 +38,10 @@ def main():
         print(s + ":")
         for e in sg.out_edges(s):
             to, rid = edge_info(e)
-            # 防御性处理：rid 可能为 None
+            # 闃插尽鎬у鐞嗭細rid 鍙兘涓?None
             rid_str = (rid[:8] + "...") if isinstance(rid, str) else str(rid)
             print("  ->", to, "(via", rid_str, ")")
 
 if __name__ == "__main__":
     main()
+

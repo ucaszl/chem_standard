@@ -1,8 +1,8 @@
-# src/path/reaction_path_finder.py
+﻿# src/path/reaction_path_finder.py
 from collections import deque
 from typing import List, Optional, Iterable, Any, Dict
 
-from src.graph.species_graph import SpeciesGraph
+from chem_standard.graph.species_graph import SpeciesGraph
 
 
 class ReactionPathFinder:
@@ -209,3 +209,4 @@ class ReactionPathFinder:
         Return counters to inspect pruning effectiveness.
         """
         return dict(self._stats)
+

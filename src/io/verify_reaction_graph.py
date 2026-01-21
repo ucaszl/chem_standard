@@ -1,7 +1,7 @@
-from pathlib import Path
+﻿from pathlib import Path
 
-from src.dataset.reaction_dataset import ReactionDataset
-from src.graph.reaction_graph import ReactionGraph
+from chem_standard.dataset.reaction_dataset import ReactionDataset
+from chem_standard.graph.reaction_graph import ReactionGraph
 
 
 def main():
@@ -25,3 +25,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

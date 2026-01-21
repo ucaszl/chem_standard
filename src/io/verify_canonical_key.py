@@ -1,10 +1,10 @@
-import json
+﻿import json
 from pathlib import Path
 from collections import defaultdict
 
-from src.atom import Atom
-from src.molecule import Molecule
-from src.reaction import Reaction
+from chem_standard.atom import Atom
+from chem_standard.molecule import Molecule
+from chem_standard.reaction import Reaction
 
 
 DATA_PATH = Path(__file__).resolve().parents[2] / "data" / "reactions.jsonl"
@@ -57,7 +57,7 @@ def main():
     print(f"Deduplicated: {total - unique}")
 
     # Optional: show collisions (same key, multiple entries)
-    print("\nCanonical collisions (key → count):")
+    print("\nCanonical collisions (key 鈫?count):")
     for k, rs in buckets.items():
         if len(rs) > 1:
             print(f"{k[:16]}... : {len(rs)}")
@@ -65,3 +65,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -1,6 +1,6 @@
-from pathlib import Path
-from src.dataset.reaction_dataset import ReactionDataset
-from src.rules.basic_rules import NonEmptyReactionRule
+﻿from pathlib import Path
+from chem_standard.dataset.reaction_dataset import ReactionDataset
+from chem_standard.rules.basic_rules import NonEmptyReactionRule
 
 
 def main():
@@ -17,3 +17,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

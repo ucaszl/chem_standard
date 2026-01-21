@@ -1,6 +1,6 @@
-# examples/demo_load.py
+﻿# examples/demo_load.py
 from ase import Atoms as ASEAtoms
-from src.io.ase_adapter import molecule_from_ase
+from chem_standard.io.ase_adapter import molecule_from_ase
 
 def main():
     symbols = ["O", "H", "H"]
@@ -13,3 +13,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -1,5 +1,5 @@
-from pathlib import Path
-from src.dataset.reaction_dataset import ReactionDataset
+﻿from pathlib import Path
+from chem_standard.dataset.reaction_dataset import ReactionDataset
 
 
 def main():
@@ -18,3 +18,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

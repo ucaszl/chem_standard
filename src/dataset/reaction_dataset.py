@@ -1,7 +1,7 @@
-from pathlib import Path
+﻿from pathlib import Path
 import json
 from collections import defaultdict
-from src.reaction import Reaction
+from chem_standard.reaction import Reaction
 
 
 class ReactionDataset:
@@ -46,3 +46,4 @@ class ReactionDataset:
             "total_reactions": len(self._reactions),
             "unique_reactions": len(self._by_canonical),
         }
+

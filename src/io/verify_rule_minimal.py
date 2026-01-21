@@ -1,4 +1,4 @@
-# src/io/verify_rule_minimal.py
+﻿# src/io/verify_rule_minimal.py
 """
 Minimal verification: ensure CompositeRule + DepthLimitRule work with your ReactionPathFinder.
 Run: python src/io/verify_rule_minimal.py
@@ -6,13 +6,13 @@ Run: python src/io/verify_rule_minimal.py
 
 import traceback
 
-from src.rules.reaction_rule_composition import CompositeRule, DepthLimitRule
+from chem_standard.rules.reaction_rule_composition import CompositeRule, DepthLimitRule
 
-# 尝试导入仓库内的 ReactionPathFinder / SpeciesGraph
+# 灏濊瘯瀵煎叆浠撳簱鍐呯殑 ReactionPathFinder / SpeciesGraph
 REAL = True
 try:
-    from src.path.reaction_path_finder import ReactionPathFinder  # type: ignore
-    from src.graph.species_graph import SpeciesGraph  # type: ignore
+    from chem_standard.path.reaction_path_finder import ReactionPathFinder  # type: ignore
+    from chem_standard.graph.species_graph import SpeciesGraph  # type: ignore
 except Exception:
     REAL = False
 
@@ -98,3 +98,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+

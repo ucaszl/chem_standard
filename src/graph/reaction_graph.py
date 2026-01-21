@@ -1,8 +1,8 @@
-from collections import defaultdict
+﻿from collections import defaultdict
 from typing import Iterable, Set, List
 
-from src.reaction import Reaction
-from src.dataset.reaction_dataset import ReactionDataset
+from chem_standard.reaction import Reaction
+from chem_standard.dataset.reaction_dataset import ReactionDataset
 
 
 class ReactionGraph:
@@ -80,3 +80,4 @@ class ReactionGraph:
             "reactions": len(self._reactions),
             "species": len(self._by_species),
         }
+

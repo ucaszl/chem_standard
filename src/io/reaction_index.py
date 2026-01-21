@@ -1,7 +1,7 @@
-from collections import defaultdict
+﻿from collections import defaultdict
 import json
 from pathlib import Path
-from src.reaction import Reaction
+from chem_standard.reaction import Reaction
 
 class ReactionIndex:
     def __init__(self):
@@ -25,3 +25,4 @@ class ReactionIndex:
 
     def counts(self):
         return {k: len(v) for k, v in self._index.items()}
+
