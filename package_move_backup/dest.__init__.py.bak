@@ -1,0 +1,14 @@
+"""Top-level package for chem_standard.
+
+Export the core public types for convenience:
+  from chem_standard import Atom, Molecule, Reaction
+Keep comments plain ASCII/UTF-8 to avoid encoding issues.
+"""
+
+# Public exports
+from .atom import Atom
+from .molecule import Molecule
+from .reaction import Reaction
+
+# Optional subpackages (uncomment if you want to expose these at package root)
+# from . import io, graph, dataset, rules, path, ml, signature, identity
