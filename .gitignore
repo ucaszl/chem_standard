@@ -17,3 +17,7 @@ Thumbs.db
 .pytest_cache/
 examples/demo_reaction_payload.json
 examples/data/
+src/*.egg-info/
+package_move_backup/
+src/chem_standard/__init__.py.bak
+convert_to_package*.ps1
